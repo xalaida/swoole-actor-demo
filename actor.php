@@ -6,7 +6,7 @@ use Swoole\Http\Server;
 
 use function Swoole\Coroutine\go;
 
-$tickets = 2;
+$tickets = 4;
 
 function buyTicket(): bool
 {
@@ -18,12 +18,12 @@ function buyTicket(): bool
         Coroutine::sleep(5); // Simulate a delay
         $tickets -= 1;
         echo "Ticket sold. Remaining tickets: " . $tickets . PHP_EOL;
-        return true;
-    } else {
-        echo "Sold out. Remaining tickets: " . $tickets . PHP_EOL;
         if ($tickets < 0) {
             echo "Wait...what? How did we get here?" . PHP_EOL;
         }
+        return true;
+    } else {
+        echo "Sold out. Remaining tickets: " . $tickets . PHP_EOL;
         return false;
     }
 }
@@ -45,17 +45,7 @@ class TicketActor {
 
     public function start() {
         go(function () {
-            echo "Starting ticket actor..." . PHP_EOL;
-
-            while (true) {
-                echo "Selling tickets..." . PHP_EOL;
-
-                $message = $this->channel->pop(10);
-
-                if (false === $message) {
-                    continue;
-                }
-
+            while ($message = $this->channel->pop()) {
                 $responseChannel = $message['responseChannel'];
 
                 $sold = buyTicket();
@@ -78,7 +68,7 @@ $server->on('request', function ($request, $response) use ($ticketActor) {
 
     $ticketActor->buyTicket($responseChannel);
 
-    $responseFromChannel = $responseChannel->pop(10);
+    $responseFromChannel = $responseChannel->pop(10); // Block for 10 seconds max
 
     $response->header('Content-Type', 'application/json; charset=utf-8');
     $response->end(json_encode($responseFromChannel));

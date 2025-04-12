@@ -16,12 +16,12 @@ function buyTicket(): bool
         Coroutine::sleep(5); // Simulate a delay
         $tickets -= 1;
         echo "Ticket sold. Remaining tickets: " . $tickets . PHP_EOL;
-        return true;
-    } else {
-        echo "Sold out. Remaining tickets: " . $tickets . PHP_EOL;
         if ($tickets < 0) {
             echo "Wait...what? How did we get here?" . PHP_EOL;
         }
+        return true;
+    } else {
+        echo "Sold out. Remaining tickets: " . $tickets . PHP_EOL;
         return false;
     }
 }
